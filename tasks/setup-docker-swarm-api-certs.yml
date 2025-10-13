@@ -65,13 +65,15 @@
   become: True
 
 - name: generate public key
-  command: |
-    openssl x509 -req -days {{ docker_api_certs_docker_certificate_validity }} -sha256 \
-    -in {{ docker_api_certs_docker_cert_path }}/server.csr \
-    -CA {{ docker_api_certs_docker_cert_path }}/{{ docker_api_certs_ca_name }} \
-    -CAkey {{ docker_api_certs_docker_cert_path }}/ca/ca-key.pem \
-    -CAcreateserial -out {{ docker_api_certs_docker_cert_path }}/{{ docker_api_certs_cert_name }} \
-    -extfile {{ docker_api_certs_docker_cert_path }}/openssl-ca.cnf
+  shell: |
+    echo subjectAltName = {{ docker_api_certs_openssl_sans | join(',') }} > {{ docker_api_certs_docker_cert_path }}/extfile.cnf \
+    && echo extendedKeyUsage = serverAuth >> {{ docker_api_certs_docker_cert_path }}/extfile.cnf \
+    && openssl x509 -req -days {{ docker_api_certs_docker_certificate_validity }} -sha256 \
+       -in {{ docker_api_certs_docker_cert_path }}/server.csr \
+       -CA {{ docker_api_certs_docker_cert_path }}/{{ docker_api_certs_ca_name }} \
+       -CAkey {{ docker_api_certs_docker_cert_path }}/ca/ca-key.pem \
+       -CAcreateserial -out {{ docker_api_certs_docker_cert_path }}/{{ docker_api_certs_cert_name }} \
+       -extfile {{ docker_api_certs_docker_cert_path }}/extfile.cnf
   when: inventory_hostname == groups['docker_swarm_manager'][0] and docker_api_certs_cert_gen
   run_once: True
   notify: restart docker

@@ -63,6 +63,8 @@ docker_api_certs_openssl_country: FR
 docker_api_certs_openssl_email: docker@localhost
 docker_api_certs_openssl_org: My ORG
 docker_api_certs_openssl_ou: My OU
+docker_api_certs_openssl_sans:
+  - "DNS:{{ docker_api_certs_openssl_domain }}"
 
 docker_api_certs_docker_certificate_validity: 365
 
